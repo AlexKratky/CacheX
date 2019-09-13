@@ -1,0 +1,19 @@
+{
+    "name": "alexkratky/cachex",
+    "description": "Class to easy work with URI, getting its part etc.",
+    "keywords": ["php", "cache", "cachex", "caching", "data"],
+    "homepage": "https://panx.eu/",
+    "license": ["MIT"],
+    "authors": [{
+            "name": "Alex Kratky",
+            "homepage": "https://alexkratky.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "alexkratky/loggerx": "^0.1.0"
+    },
+    "autoload": {
+        "files": ["src/cache.php"]
+    }
+}
