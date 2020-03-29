@@ -6,6 +6,18 @@ Class to work with cache.
 
 `composer require alexkratky/cachex`
 
+### Usage
+
+```php
+require 'vendor/autoload.php';
+
+use AlexKratky\Cache;
+
+Cache::save("test.json", array(
+    "name" => "Alex"
+));
+```
+
 ### Working with Cache
 
 Working with Cache in panx framework is quite easy. If you need to save some variable to cache, you can do it by calling `Cache::save($name, $data) `, where `$name` is the name of the variable and `$data` is its value.

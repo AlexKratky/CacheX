@@ -15,25 +15,25 @@ declare (strict_types = 1);
 namespace AlexKratky;
 
 use AlexKratky\Logger;
+use AlexKratky\FileStream;
 
-class Cache
-{
+class Cache {
 
     /**
      * @var int Default cache live in seconds.
      */
     const CACHE_TIME = 10;
 
+    private static $directory = null;
+
     /**
      * Creates /cache/ folder.
      */
-    public static function init(): void
-    {
-        if (!file_exists($_SERVER['DOCUMENT_ROOT'] . "/../cache/")) {
-            if (!mkdir($_SERVER['DOCUMENT_ROOT'] . "/../cache/")) {
+    public static function init(): void {
+        self::$directory = self::$directory ?? $_SERVER['DOCUMENT_ROOT'] . "/../cache/";
+        if(!file_exists('panx://' . self::$directory)) {
+            if(!mkdir('panx://' . self::$directory))
                 Logger::log("Failed to create cache folder");
-            }
-
         }
     }
 
@@ -41,10 +41,10 @@ class Cache
      * Saves data to cache file.
      * @param string $name The name of variable.
      * @param mixed $data The data that will be saved. Data will be edited by json_encode()
-     */
-    public static function save(string $name, $data): void
-    {
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . "/../cache/" . $name, json_encode($data));
+    */
+    public static function save(string $name, $data): void {
+        self::$directory = self::$directory ?? $_SERVER['DOCUMENT_ROOT'] . "/../cache/";
+        file_put_contents('panx://' . self::$directory . $name, json_encode($data));
     }
 
     /**
@@ -52,11 +52,11 @@ class Cache
      * @param string $name The name of variable.
      * @param int $cacheTime The cache live in seconds, if you pass null, then the default time will be used.
      * @return mixed|false Returns false if there is no cache with that variable name or when the cache is expired, else returns decoded data using json_decode()
-     */
-    public static function get(string $name, ?int $cacheTime = null)
-    {
-        if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/../cache/" . $name) && filectime($_SERVER['DOCUMENT_ROOT'] . "/../cache/" . $name) + ($cacheTime == null ? self::CACHE_TIME : $cacheTime) > time()) {
-            return json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/../cache/" . $name), true);
+    */
+    public static function get(string $name, ?int $cacheTime = null) {
+        self::$directory = self::$directory ?? $_SERVER['DOCUMENT_ROOT'] . "/../cache/";
+        if(file_exists('panx://' . self::$directory . $name) && filectime('panx://' . self::$directory . $name) + ($cacheTime == null ? self::CACHE_TIME : $cacheTime) > time()) {
+            return json_decode(file_get_contents('panx://' . self::$directory . $name), true);
         } else {
             return false;
         }
@@ -66,14 +66,11 @@ class Cache
      * Destroy specified cache.
      * @param string $name The name of variable.
      */
-    public static function destroy(string $name): bool
-    {
-        if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/../cache/" . $name)) {
-            return unlink($_SERVER['DOCUMENT_ROOT'] . "/../cache/" . $name);
-        } else {
-            return false;
-        }
-
+    public static function destroy(string $name): bool {
+        self::$directory = self::$directory ?? $_SERVER['DOCUMENT_ROOT'] . "/../cache/";
+        if(file_exists('panx://' . self::$directory . $name))
+            return unlink('panx://' . self::$directory . $name);
+        else return false;
     }
 
     /**
@@ -82,19 +79,15 @@ class Cache
      * @param string $dir The basedir, used when called from terminal.
      * @param int $time The time in seconds, default value is 86400 (1 day).
      */
-    public static function clearUnused($dir = null, $time = 86400)
-    {
-        if ($dir === null) {
-            $dir = $_SERVER['DOCUMENT_ROOT'] . "/..";
+    public static function clearUnused($dir = null, $time = 86400) {
+        if($dir === null) {
+            $dir = self::$directory ?? $_SERVER['DOCUMENT_ROOT'] . "/../cache/";
         }
-        $c = scandir($dir . "/cache/");
+        $c = scandir('panx://' . $dir);
         foreach ($c as $f) {
-            if ($f == "." || $f == "..") {
-                continue;
-            }
-
-            if (filemtime($dir . "/cache/" . $f) + $time < time()) {
-                unlink($dir . "/cache/" . $f);
+            if($f == "." || $f == "..") continue;
+            if(filemtime('panx://' . $dir . $f) + $time < time()) {
+                unlink('panx://' . $dir . $f);
             }
         }
     }
@@ -104,19 +97,20 @@ class Cache
      * Can be called using php panx-worker clear cache
      * @param string $dir The basedir, used when called from terminal.
      */
-    public static function clearAll($dir = null)
-    {
-        if ($dir === null) {
-            $dir = $_SERVER['DOCUMENT_ROOT'] . "/..";
+    public static function clearAll($dir = null) {
+        if($dir === null) {
+            $dir = self::$directory ?? $_SERVER['DOCUMENT_ROOT'] . "/../cache/";
         }
-        $c = scandir($dir . "/cache/");
+        $c = scandir('panx://' . $dir);
         foreach ($c as $f) {
-            if ($f == "." || $f == "..") {
-                continue;
-            }
-
-            unlink($dir . "/cache/" . $f);
+            if($f == "." || $f == "..") continue;
+            unlink('panx://' . $dir . $f);
         }
         //Logger::log("Cache was cleared.", "main.log", $dir);
     }
+
+    public static function setDirectory($directory) {
+        self::$directory = $directory;
+    }
+
 }
