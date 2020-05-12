@@ -12,6 +12,10 @@ Class to work with cache.
 require 'vendor/autoload.php';
 
 use AlexKratky\Cache;
+use AlexKratky\Logger;
+
+Cache::setDirectory(__DIR__ . '/cache/');
+Logger::setDirectory(__DIR__ . '/cache/');
 
 Cache::save("test.json", array(
     "name" => "Alex"
@@ -26,27 +30,27 @@ After you saved data, you can retrieve them by calling `Cache::get($name, $cache
 
 `Cache::get()` will return the data or `false` if the variable is not stored in cache or it is too old.
 
-Example code used in Post Class (`Post::listPosts()`):
-
 ```php
-$p = Cache::get("posts", 60);
-if($p !== false) {
-    Logger::log("Using cached posts");
-    return $p;
-}
-$f = scandir($_SERVER['DOCUMENT_ROOT']."/../template/posts/");
-$f_arr = array();
+require 'vendor/autoload.php';
 
-foreach($f as $file) {
-    if($file == "." || $file == "..") continue;
-    array_push($f_arr, array("name" => basename($file, ".php"), "created_at" => filectime($_SERVER['DOCUMENT_ROOT']."/../template/posts/$file")));
+use AlexKratky\Cache;
+use AlexKratky\Logger;
 
+Cache::setDirectory(__DIR__ . '/cache/');
+Logger::setDirectory(__DIR__ . '/cache/');
+
+$c = Cache::get("user", 30);
+if($c !== false) {
+    var_dump($c);
 }
-//sort array by date
-usort($f_arr, 'self::compareTime');
-Cache::save("posts", $f_arr);
-Logger::log("Cache saved");
-return $f_arr;
+$c_arr = array(
+    "ID" => 1,
+    "name" => "Alex",
+    "email" => "example@example.com",
+    "age" => 19,
+    "admin" => true
+);
+Cache::save("user", $c_arr);
 ```
 
 
